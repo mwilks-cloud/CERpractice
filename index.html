@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CER Interactive Builder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      padding: 15px;
+      margin: 0;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .card-pool {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+      min-height: 120px;
+      padding: 10px;
+      background: #eef2f5;
+      border-radius: 6px;
+    }
+    .card {
+      background: #0073ea;
+      color: #ffffff;
+      padding: 12px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 14px;
+      transition: transform 0.1s ease, background-color 0.2s ease;
+    }
+    .card:hover {
+      background: #005bb5;
+    }
+    .card.selected {
+      background: #ff9800;
+      outline: 2px solid #e65100;
+    }
+    .target-slot {
+      border: 2px dashed #b0bec5;
+      background: #fafafa;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+      min-height: 50px;
+      cursor: pointer;
+    }
+    .target-slot h4 {
+      margin: 0 0 8px 0;
+      color: #37474f;
+      font-size: 15px;
+    }
+    .btn {
+      background: #2e7d32;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .btn:hover {
+      background: #1b5e20;
+    }
+    #feedback {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    .correct { color: #2e7d32; }
+    .incorrect { color: #c62828; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <p><strong>Instructions:</strong> Click a statement card to select it, then click the target box where it belongs.</p>
+  
+  <div class="card-pool" id="cardPool"></div>
+
+  <div class="target-slot" data-type="claim" onclick="placeCard(this)">
+    <h4>1. Claim (The Answer)</h4>
+    <div class="slot-content"></div>
+  </div>
+
+  <div class="target-slot" data-type="evidence" onclick="placeCard(this)">
+    <h4>2. Evidence (The Data)</h4>
+    <div class="slot-content"></div>
+  </div>
+
+  <div class="target-slot" data-type="reasoning" onclick="placeCard(this)">
+    <h4>3. Reasoning (The Biological Why)</h4>
+    <div class="slot-content"></div>
+  </div>
+
+  <button class="btn" onclick="checkCER()">Check CER Argument</button>
+  <div id="feedback"></div>
+</div>
+
+<script>
+  const cardsData = [
+    { id: "c1", type: "claim", text: "High salinity causes the lake water to turn pink." },
+    { id: "c2", type: "evidence", text: "Water with 28% salinity contained pink Halobacterium." },
+    { id: "c3", type: "reasoning", text: "Halobacterium thrive in extreme salt and produce pink pigments to trap sunlight for energy." }
+  ];
+
+  let selectedCard = null;
+
+  function initGame() {
+    const pool = document.getElementById("cardPool");
+    pool.innerHTML = "";
+    
+    // Shuffle cards so they do not appear in CER order
+    const shuffled = [...cardsData].sort(() => Math.random() - 0.5);
+
+    shuffled.forEach(item => {
+      const cardEl = document.createElement("div");
+      cardEl.className = "card";
+      cardEl.dataset.id = item.id;
+      cardEl.dataset.type = item.type;
+      cardEl.innerText = item.text;
+      cardEl.onclick = (e) => selectCard(e, cardEl);
+      pool.appendChild(cardEl);
+    });
+  }
+
+  function selectCard(event, cardEl) {
+    event.stopPropagation();
+    if (selectedCard) {
+      selectedCard.classList.remove("selected");
+    }
+    if (selectedCard === cardEl) {
+      selectedCard = null;
+    } else {
+      selectedCard = cardEl;
+      selectedCard.classList.add("selected");
+    }
+  }
+
+  function placeCard(slotEl) {
+    if (!selectedCard) return;
+    const contentArea = slotEl.querySelector(".slot-content");
+    
+    // Move any existing card in the target slot back to the main pool
+    if (contentArea.children.length > 0) {
+      document.getElementById("cardPool").appendChild(contentArea.children[0]);
+    }
+
+    selectedCard.classList.remove("selected");
+    contentArea.appendChild(selectedCard);
+    selectedCard = null;
+  }
+
+  function checkCER() {
+    const feedback = document.getElementById("feedback");
+    const slots = document.querySelectorAll(".target-slot");
+    let allCorrect = true;
+    let totalPlaced = 0;
+
+    slots.forEach(slot => {
+      const card = slot.querySelector(".card");
+      if (card) {
+        totalPlaced++;
+        if (card.dataset.type !== slot.dataset.type) {
+          allCorrect = false;
+        }
+      } else {
+        allCorrect = false;
+      }
+    });
+
+    if (totalPlaced < 3) {
+      feedback.className = "incorrect";
+      feedback.innerText = "Please place all 3 cards before checking your argument.";
+    } else if (allCorrect) {
+      feedback.className = "correct";
+      feedback.innerText = "Correct! You successfully constructed a 3D Scientific Argument.";
+    } else {
+      feedback.className = "incorrect";
+      feedback.innerText = "Not quite right. Re-read the definition for each step and try rearranging the cards!";
+    }
+  }
+
+  initGame();
+</script>
+
+</body>
+</html>
