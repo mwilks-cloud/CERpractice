@@ -60,6 +60,10 @@
       color: #37474f;
       font-size: 15px;
     }
+    .button-group {
+      display: flex;
+      gap: 10px;
+    }
     .btn {
       background: #2e7d32;
       color: white;
@@ -72,6 +76,12 @@
     }
     .btn:hover {
       background: #1b5e20;
+    }
+    .btn-reset {
+      background: #616161;
+    }
+    .btn-reset:hover {
+      background: #424242;
     }
     #feedback {
       margin-top: 15px;
@@ -104,7 +114,11 @@
     <div class="slot-content"></div>
   </div>
 
-  <button class="btn" onclick="checkCER()">Check CER Argument</button>
+  <div class="button-group">
+    <button class="btn" onclick="checkCER()">Check CER Argument</button>
+    <button class="btn btn-reset" onclick="resetGame()">Reset</button>
+  </div>
+  
   <div id="feedback"></div>
 </div>
 
@@ -121,7 +135,15 @@
     const pool = document.getElementById("cardPool");
     pool.innerHTML = "";
     
-    // Shuffle cards so they do not appear in CER order
+    // Clear slots
+    document.querySelectorAll(".slot-content").forEach(slot => slot.innerHTML = "");
+    
+    // Clear feedback text
+    const feedback = document.getElementById("feedback");
+    feedback.innerText = "";
+    feedback.className = "";
+
+    // Shuffle cards
     const shuffled = [...cardsData].sort(() => Math.random() - 0.5);
 
     shuffled.forEach(item => {
@@ -152,7 +174,6 @@
     if (!selectedCard) return;
     const contentArea = slotEl.querySelector(".slot-content");
     
-    // Move any existing card in the target slot back to the main pool
     if (contentArea.children.length > 0) {
       document.getElementById("cardPool").appendChild(contentArea.children[0]);
     }
@@ -190,6 +211,11 @@
       feedback.className = "incorrect";
       feedback.innerText = "Not quite right. Re-read the definition for each step and try rearranging the cards!";
     }
+  }
+
+  function resetGame() {
+    selectedCard = null;
+    initGame();
   }
 
   initGame();
